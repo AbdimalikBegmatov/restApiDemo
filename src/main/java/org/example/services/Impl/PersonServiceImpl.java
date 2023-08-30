@@ -57,4 +57,20 @@ public class PersonServiceImpl implements PersonService {
             throw new ApiRequestException("Person not found",HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(person.get(),HttpStatus.OK);
     }
+
+    @Transactional
+    @Override
+    public ResponseEntity<Long> edit(Long id, PersonCreateRequest personCreateRequest) {
+        Optional<Person> person= personRepository.findById(id);
+        if (person.isEmpty())
+            throw new ApiRequestException("Person not found",HttpStatus.NOT_FOUND);
+
+        person.get().setPassword(personCreateRequest.password());
+        person.get().setDob(personCreateRequest.dob());
+        person.get().setEmail(personCreateRequest.email());
+        person.get().setName(personCreateRequest.name());
+
+        personRepository.save(person.get());
+        return new ResponseEntity<>(person.get().getId(),HttpStatus.OK);
+    }
 }

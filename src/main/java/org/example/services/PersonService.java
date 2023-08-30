@@ -12,4 +12,5 @@ public interface PersonService {
     ResponseEntity<HttpStatus> save(PersonCreateRequest person);
     ResponseEntity<List<Person>> getAll();
     ResponseEntity<Person> getById(@PathVariable("id")Long id);
+    ResponseEntity<Long> edit(Long id,PersonCreateRequest personCreateRequest);
 }

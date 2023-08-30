@@ -31,4 +31,8 @@ public class PersonController {
     public ResponseEntity<Person> getById(@PathVariable("id") Long id){
         return personService.getById(id);
     }
+    @PostMapping("/{id}")
+    public ResponseEntity<Long> edit(@PathVariable("id") Long id,@RequestBody PersonCreateRequest personCreateRequest){
+        return personService.edit(id,personCreateRequest);
+    }
 }
