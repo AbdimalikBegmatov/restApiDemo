@@ -1,6 +1,7 @@
 package org.example.services.Impl;
 
 import org.example.dto.PersonCreateRequest;
+import org.example.dto.PersonResponseDto;
 import org.example.exceptions.ApiRequestException;
 import org.example.models.Person;
 import org.example.repository.PersonRepository;
@@ -13,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,17 +54,38 @@ public class PersonServiceImpl implements PersonService {
     }
 
     @Override
-    public ResponseEntity<List<Person>> getAll() {
-
-        return new ResponseEntity<>(personRepository.findAll(),HttpStatus.OK);
+    public ResponseEntity<List<PersonResponseDto>> getAll() {
+        List<Person> person = personRepository.findAll();
+        List<PersonResponseDto> responseDtos=new ArrayList<>();
+        for (Person per:person
+             ) {
+            responseDtos.add(new PersonResponseDto(
+                    per.getId(),
+                    per.getName(),
+                    per.getEmail(),
+                    per.getPassword(),
+                    per.getDob(),
+                    per.getCreateAt(),
+                    per.getAge()));
+        }
+        return new ResponseEntity<>(responseDtos, HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<Person> getById(Long id) {
+    public ResponseEntity<PersonResponseDto> getById(Long id) {
         Optional<Person> person = personRepository.findById(id);
         if (person.isEmpty())
             throw new ApiRequestException("Person not found",HttpStatus.NOT_FOUND);
-        return new ResponseEntity<>(person.get(),HttpStatus.OK);
+
+        return new ResponseEntity<>(new PersonResponseDto(
+                person.get().getId(),
+                person.get().getName(),
+                person.get().getEmail(),
+                person.get().getPassword(),
+                person.get().getDob(),
+                person.get().getCreateAt(),
+                person.get().getAge()
+        ),HttpStatus.OK);
     }
 
     @Transactional

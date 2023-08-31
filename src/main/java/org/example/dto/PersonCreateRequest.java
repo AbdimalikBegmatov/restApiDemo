@@ -19,6 +19,4 @@ public class PersonCreateRequest {
     private String password;
     @NotNull(message = "cant be null")
     private LocalDate dob;
-
-
 }

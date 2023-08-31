@@ -2,6 +2,7 @@ package org.example.controllers;
 
 import jakarta.validation.Valid;
 import org.example.dto.PersonCreateRequest;
+import org.example.dto.PersonResponseDto;
 import org.example.models.Person;
 import org.example.services.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ public class PersonController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<Person>> getAll(){
+    public ResponseEntity<List<PersonResponseDto>> getAll(){
         return personService.getAll();
     }
     @PostMapping()
@@ -31,10 +32,10 @@ public class PersonController {
         return personService.save(request,bindingResult);
     }
     @GetMapping("/{id}")
-    public ResponseEntity<Person> getById(@PathVariable("id") Long id){
+    public ResponseEntity<PersonResponseDto> getById(@PathVariable("id") Long id){
         return personService.getById(id);
     }
-    @PostMapping("/{id}")
+    @PostMapping("/edit/{id}")
     public ResponseEntity<Long> edit(@PathVariable("id") Long id,
                                      @RequestBody
                                      @Valid
