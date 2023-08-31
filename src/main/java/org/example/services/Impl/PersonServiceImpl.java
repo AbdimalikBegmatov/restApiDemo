@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,19 +27,23 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     @Transactional
-    public ResponseEntity<HttpStatus> save(PersonCreateRequest request) {
+    public ResponseEntity<HttpStatus> save(PersonCreateRequest request, BindingResult bindingResult) {
 
         Person person =new Person();
 
-        Optional<Person> email = personRepository.findByEmail(request.email());
+        if (bindingResult.hasErrors()){
+            throw new ApiRequestException(handleBindingResult(bindingResult),HttpStatus.BAD_REQUEST);
+        }
+
+        Optional<Person> email = personRepository.findByEmail(request.getEmail());
 
         if (email.isPresent())
             throw new ApiRequestException("This email already have",HttpStatus.BAD_REQUEST);
 
-        person.setName(request.name());
-        person.setEmail(request.email());
-        person.setDob(request.dob());
-        person.setPassword(request.password());
+        person.setName(request.getName());
+        person.setEmail(request.getEmail());
+        person.setDob(request.getDob());
+        person.setPassword(request.getPassword());
 
         personRepository.save(person);
 
@@ -60,17 +66,29 @@ public class PersonServiceImpl implements PersonService {
 
     @Transactional
     @Override
-    public ResponseEntity<Long> edit(Long id, PersonCreateRequest personCreateRequest) {
+    public ResponseEntity<Long> edit(Long id, PersonCreateRequest personCreateRequest,BindingResult bindingResult) {
+        if (bindingResult.hasErrors()){
+            throw new ApiRequestException(handleBindingResult(bindingResult),HttpStatus.BAD_REQUEST);
+        }
         Optional<Person> person= personRepository.findById(id);
         if (person.isEmpty())
             throw new ApiRequestException("Person not found",HttpStatus.NOT_FOUND);
 
-        person.get().setPassword(personCreateRequest.password());
-        person.get().setDob(personCreateRequest.dob());
-        person.get().setEmail(personCreateRequest.email());
-        person.get().setName(personCreateRequest.name());
+        person.get().setPassword(personCreateRequest.getPassword());
+        person.get().setDob(personCreateRequest.getDob());
+        person.get().setEmail(personCreateRequest.getEmail());
+        person.get().setName(personCreateRequest.getName());
 
         personRepository.save(person.get());
         return new ResponseEntity<>(person.get().getId(),HttpStatus.OK);
+    }
+
+    private String handleBindingResult(BindingResult bindingResult){
+        StringBuilder stringBuilder=new StringBuilder();
+        for (FieldError error: bindingResult.getFieldErrors()
+        ) {
+            stringBuilder.append(error.getField()).append("-").append(error.getDefaultMessage()).append(";");
+        }
+        return stringBuilder.toString();
     }
 }
