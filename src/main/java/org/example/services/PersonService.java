@@ -1,5 +1,6 @@
 package org.example.services;
 
+import org.example.dto.DataDto;
 import org.example.dto.PersonCreateRequest;
 import org.example.dto.PersonResponseDto;
 import org.example.models.Person;
@@ -12,7 +13,7 @@ import java.util.List;
 
 public interface PersonService {
     ResponseEntity<HttpStatus> save(PersonCreateRequest person, BindingResult bindingResult);
-    ResponseEntity<List<PersonResponseDto>> getAll();
+    ResponseEntity<DataDto<PersonResponseDto>> getAll(Integer id);
     ResponseEntity<PersonResponseDto> getById(@PathVariable("id")Long id);
     ResponseEntity<Long> edit(Long id,PersonCreateRequest personCreateRequest,BindingResult bindingResult);
 }

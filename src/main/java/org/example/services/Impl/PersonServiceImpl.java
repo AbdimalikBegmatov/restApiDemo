@@ -1,5 +1,6 @@
 package org.example.services.Impl;
 
+import org.example.dto.DataDto;
 import org.example.dto.PersonCreateRequest;
 import org.example.dto.PersonResponseDto;
 import org.example.exceptions.ApiRequestException;
@@ -7,6 +8,9 @@ import org.example.models.Person;
 import org.example.repository.PersonRepository;
 import org.example.services.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -14,9 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,6 +30,7 @@ public class PersonServiceImpl implements PersonService {
     }
 
     @Override
+
     @Transactional
     public ResponseEntity<HttpStatus> save(PersonCreateRequest request, BindingResult bindingResult) {
 
@@ -54,21 +56,43 @@ public class PersonServiceImpl implements PersonService {
     }
 
     @Override
-    public ResponseEntity<List<PersonResponseDto>> getAll() {
-        List<Person> person = personRepository.findAll();
-        List<PersonResponseDto> responseDtos=new ArrayList<>();
-        for (Person per:person
-             ) {
-            responseDtos.add(new PersonResponseDto(
-                    per.getId(),
-                    per.getName(),
-                    per.getEmail(),
-                    per.getPassword(),
-                    per.getDob(),
-                    per.getCreateAt(),
-                    per.getAge()));
-        }
-        return new ResponseEntity<>(responseDtos, HttpStatus.OK);
+    public ResponseEntity<DataDto<PersonResponseDto>> getAll(Integer id) {
+        int pageSize=4;
+        if (id <= 0)
+            throw new ApiRequestException("Page number must be more than 0",HttpStatus.BAD_REQUEST);
+
+//        List<PersonResponseDto> personResponseDtos = personRepository.findAllbyCustom(id*pageSize,pageSize).stream().map(per -> {
+//            return new PersonResponseDto(
+//                   per.getId(),
+//                   per.getName(),
+//                   per.getEmail(),
+//                   per.getPassword(),
+//                   per.getDob(),
+//                   per.getCreateAt(),
+//                   per.getAge());
+//        }).collect(Collectors.toList());
+//
+//        int countAllPage = Math.toIntExact(personRepository.count() / pageSize);
+//
+//        DataDto<PersonResponseDto> dataDto=new DataDto<>(
+//                personResponseDtos.get(personResponseDtos.size()-1).getCreateAt(),
+//                id,
+//                countAllPage,
+//                personResponseDtos);
+        Page<Person> personPage = personRepository.findAll(PageRequest.of(id-1,pageSize, Sort.by("createAt")));
+
+        int maxPageSize = personPage.getTotalPages();
+
+        return new ResponseEntity<>(new DataDto<>(id,maxPageSize,personPage.getContent().stream().map(person -> {
+            return new PersonResponseDto(
+                    person.getId(),
+                    person.getEmail(),
+                    person.getName(),
+                    person.getPassword(),
+                    person.getDob(),
+                    person.getCreateAt(),
+                    person.getAge());
+        }).toList()), HttpStatus.OK);
     }
 
     @Override
